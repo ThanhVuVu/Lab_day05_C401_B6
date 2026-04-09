@@ -1,29 +1,27 @@
 # SPEC — AI Product Hackathon
 
-**Nhóm:** ___  
-**Track:** ☐ VinFast · ☐ Vinmec · ☐ VinUni-VinSchool · ☐ XanhSM · ☑ Open  
-**Problem statement (1 câu):** *Recruiter mất nhiều thời gian đọc CV và khó đánh giá mức độ phù hợp với JD; hiện lọc theo keyword dễ sai và thiếu giải thích; AI giúp hiểu semantic CV/JD, xếp hạng minh bạch và sinh câu hỏi phỏng vấn.*
+**Nhóm:** Smart CV-JD Matching Team
+**Track:** ☐ VinFast · ☐ Vinmec · ☑ VinUni-VinSchool · ☐ XanhSM · ☐ Open
+**Problem statement (1 câu):** Nhà tuyển dụng mất hàng giờ đọc CV và chuẩn bị phỏng vấn thủ công — AI tự động phân tích CV, matching với JD, xếp hạng ứng viên và tạo câu hỏi phỏng vấn tùy chỉnh
 
 ---
 
 ## 1. AI Product Canvas
 
+|   | Value | Trust | Feasibility |
+|---|-------|-------|-------------|
+| **Câu hỏi** | User nào? Pain gì? AI giải gì? | Khi AI sai thì sao? User sửa bằng cách nào? | Cost/latency bao nhiêu? Risk chính? |
+| **Trả lời** | HR/Recruiter mất 2-3 giờ/vị trí để đọc 50+ CV, matching thủ công, chuẩn bị câu hỏi phỏng vấn — AI tự động phân tích CV, tính matching score (keyword + semantic), xếp hạng top-N, phân tích sâu điểm mạnh/yếu, và tạo bộ câu hỏi phỏng vấn tùy chỉnh từ database nội bộ | AI matching sai → user xem chi tiết phân tích (skills, experience, summary), điều chỉnh top-N selection, hoặc chỉnh sửa câu hỏi phỏng vấn trước khi sử dụng | ~$0.05-0.10/CV (NVIDIA API), latency 3-5s/CV, 10-15s cho deep analysis. Risk: hallucinate skills không có trong CV, bias trong matching algorithm, câu hỏi phỏng vấn không phù hợp văn hóa công ty |
 
-|             | Value                                                                                                                                                              | Trust                                                                                                                                                                                          | Feasibility                                                                                                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Câu hỏi** | User nào? Pain gì? AI giải gì?                                                                                                                                     | Khi AI sai thì sao? User sửa bằng cách nào?                                                                                                                                                    | Cost/latency bao nhiêu? Risk chính?                                                                                                                                                                                                                      |
-| **Trả lời** | *Recruiter/HR phải đọc nhiều CV và match với JD → tốn thời gian, lọc keyword sai lệch; AI parse CV + hiểu JD + match/rank + giải thích + gợi ý câu hỏi phỏng vấn.* | *AI match sai / lý do giải thích không đúng → user xem reasoning + skill gaps, chỉnh sửa/override score, đánh dấu “fit/not fit”, thêm/loại skills; hệ thống ghi nhận correction để cải thiện.* | *POC Option A/B (khuyến nghị A: prompt-based + embeddings); latency mục tiêu < 10–20s cho 1 batch nhỏ CV; risk: hallucination khi extract CV/JD, bias/keyword overfit, parsing PDF lỗi; giảm rủi ro bằng schema output + critic agent + fallback rules.* |
-
-
-**Automation hay augmentation?** ☐ Automation · ☑ Augmentation  
-Justify: *Augmentation — AI đề xuất shortlist/score/reasoning, recruiter quyết định cuối; reject/override rẻ và tạo learning signal.*
+**Automation hay augmentation?** ☐ Automation · ☑ Augmentation
+Justify: Augmentation — AI đề xuất top-N candidates với matching score, HR review và quyết định cuối cùng. Câu hỏi phỏng vấn được generate nhưng HR có thể chỉnh sửa trước khi sử dụng. Cost of reject thấp vì chỉ cần skip candidate hoặc edit questions.
 
 **Learning signal:**
 
-1. User correction đi vào đâu? *Log sự kiện: chỉnh score, accept/reject candidate, edit skills/must-have, đánh dấu reason “không đúng”, chọn câu hỏi phỏng vấn nào dùng.*
-2. Product thu signal gì để biết tốt lên hay tệ đi? *Tỉ lệ accept shortlist, thời gian lọc giảm, tỉ lệ “reasoning helpful”, tỉ lệ override score, tỉ lệ candidate qua vòng phỏng vấn (proxy), feedback chất lượng câu hỏi.*
-3. Data thuộc loại nào? ☐ User-specific · ☐ Domain-specific · ☐ Real-time · ☐ Human-judgment · ☐ Khác: ___
-  Có marginal value không? (Model đã biết cái này chưa?) *Có — judgment của recruiter theo từng role/domain và tiêu chuẩn nội bộ thường không có trong dữ liệu công khai.*
+1. User correction đi vào đâu? Hiện tại chưa có feedback loop. Trong tương lai: HR chọn/bỏ candidate → log vào database để fine-tune matching weights
+2. Product thu signal gì để biết tốt lên hay tệ đi? Tracking: % candidates được chọn phỏng vấn từ top-N, % câu hỏi được giữ nguyên vs chỉnh sửa, thời gian HR dành cho review (giảm từ 2-3h xuống <30 phút)
+3. Data thuộc loại nào? ☑ Domain-specific · ☑ Human-judgment · ☐ User-specific · ☐ Real-time · ☐ Khác: ___
+   Có marginal value không? Có — CV và JD của công ty chứa domain knowledge (technical skills, role requirements) mà general LLM chưa tối ưu. Interview question database nội bộ phản ánh văn hóa và tiêu chuẩn riêng của công ty.
 
 ---
 
@@ -31,87 +29,133 @@ Justify: *Augmentation — AI đề xuất shortlist/score/reasoning, recruiter 
 
 Mỗi feature chính = 1 bảng. AI trả lời xong → chuyện gì xảy ra?
 
-### Feature: *CV–JD matching & ranking + explainability*
+### Feature: CV-JD Matching & Ranking
 
-**Trigger:** *Recruiter upload JD + upload nhiều CV → system parse → match/rank → hiển thị shortlist + reasoning + gaps.*
+**Trigger:** HR upload JD và batch CVs → AI phân tích từng CV → tính matching score (required skills 70% + preferred skills 20% + semantic similarity 10%) → xếp hạng candidates
 
+| Path | Câu hỏi thiết kế | Mô tả |
+|------|-------------------|-------|
+| Happy — AI đúng, tự tin | User thấy gì? Flow kết thúc ra sao? | Top-3 candidates có matching score 70-85%, HR review summary và technical skills, thấy phù hợp, chọn để phỏng vấn |
+| Low-confidence — AI không chắc | System báo "không chắc" bằng cách nào? User quyết thế nào? | Matching score 40-60%, UI hiển thị warning "Moderate Match", HR xem chi tiết gap analysis (missing skills, experience mismatch), quyết định có tiếp tục hay không |
+| Failure — AI sai | User biết AI sai bằng cách nào? Recover ra sao? | AI cho điểm cao (75%) nhưng HR đọc CV thấy candidate thiếu required skill quan trọng → HR bỏ qua candidate này, chọn người khác trong danh sách ranked |
+| Correction — user sửa | User sửa bằng cách nào? Data đó đi vào đâu? | HR điều chỉnh top-N slider (từ 3 lên 5) để xem thêm candidates, hoặc manually add candidate bị bỏ sót → hiện tại chưa log feedback, future: lưu vào training data |
 
-| Path                           | Câu hỏi thiết kế                                           | Mô tả                                                                                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Happy — AI đúng, tự tin        | User thấy gì? Flow kết thúc ra sao?                        | *Dashboard hiển thị Top N ứng viên kèm score, strengths, skill gaps; recruiter nhanh chóng shortlist và xuất kết quả.*                                                                             |
-| Low-confidence — AI không chắc | System báo "không chắc" bằng cách nào? User quyết thế nào? | *Score kèm “low confidence” (vd: thiếu evidence trong CV, parsing uncertain); UI yêu cầu xác nhận: “thiếu skill X có đúng không?”; recruiter bổ sung/override.*                                    |
-| Failure — AI sai               | User biết AI sai bằng cách nào? Recover ra sao?            | *Ứng viên bị xếp hạng cao vì keyword nhưng thiếu context; critic/consistency check gắn cờ “inconsistent reasoning”; recruiter mở candidate detail, thấy mismatch và hạ score/loại khỏi shortlist.* |
-| Correction — user sửa          | User sửa bằng cách nào? Data đó đi vào đâu?                | *Recruiter chỉnh must-have/nice-to-have, sửa skill extraction, override score, đánh dấu “fit/not fit” + lý do; hệ thống lưu correction logs để tune weights/prompt và đánh giá chất lượng.*        |
+### Feature: Deep Analysis & Interview Question Generation
 
+**Trigger:** HR chọn top-N candidates → AI phân tích sâu điểm mạnh/yếu so với JD → generate câu hỏi phỏng vấn từ database nội bộ
 
-### Feature: *Interview question generation (text)*
-
-**Trigger:** *Recruiter chọn 1 ứng viên trong shortlist → system dùng JD + CV + skill gaps để sinh câu hỏi phỏng vấn.*
-
-
-| Path                           | Câu hỏi thiết kế                                           | Mô tả                                                                                                                                                          |
-| ------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Happy — AI đúng, tự tin        | User thấy gì? Flow kết thúc ra sao?                        | *Sinh 3–5 câu technical + 2 behavioral, có mapping tới gaps/requirements; recruiter chọn câu hỏi và dùng trong buổi phỏng vấn.*                                |
-| Low-confidence — AI không chắc | System báo "không chắc" bằng cách nào? User quyết thế nào? | *Một số câu hỏi có tag “need context” (vd: CV thiếu chi tiết dự án); system gợi ý câu hỏi làm rõ; recruiter chỉnh prompt nhanh hoặc chọn template.*            |
-| Failure — AI sai               | User biết AI sai bằng cách nào? Recover ra sao?            | *Câu hỏi quá chung chung / không liên quan JD; UI cho phép “regenerate with constraints” (role level, tech focus) và chặn câu hỏi không phù hợp (guardrails).* |
-| Correction — user sửa          | User sửa bằng cách nào? Data đó đi vào đâu?                | *Recruiter edit câu hỏi, pin câu hỏi tốt, đánh giá 1–5; logs dùng để cải thiện prompt và rubric đánh giá relevance.*                                           |
-
+| Path | Câu hỏi thiết kế | Mô tả |
+|------|-------------------|-------|
+| Happy — AI đúng, tự tin | User thấy gì? Flow kết thúc ra sao? | AI tạo 5 câu hỏi phỏng vấn: 2 câu về strengths (technical depth), 2 câu về weaknesses (gap probing), 1 câu culture fit. HR thấy phù hợp, copy vào interview script |
+| Low-confidence — AI không chắc | System báo "không chắc" bằng cách nào? User quyết thế nào? | AI không tìm thấy câu hỏi phù hợp trong database → generate generic questions + note "Customize recommended". HR tự chỉnh sửa hoặc thêm câu hỏi mới |
+| Failure — AI sai | User biết AI sai bằng cách nào? Recover ra sao? | Câu hỏi quá generic hoặc không liên quan đến weaknesses → HR thấy ngay khi review, xóa câu hỏi không phù hợp, giữ lại câu hay |
+| Correction — user sửa | User sửa bằng cách nào? Data đó đi vào đâu? | HR edit câu hỏi trực tiếp trong UI hoặc thêm câu hỏi mới → hiện tại chưa save back to database, future: enriched question bank |
 
 ---
 
 ## 3. Eval metrics + threshold
 
-**Optimize precision hay recall?** ☐ Precision · ☐ Recall  
-Tại sao? *Ưu tiên precision cho shortlist: false positive làm recruiter tốn thời gian phỏng vấn/đánh giá sai; vẫn cần recall đủ để không bỏ lỡ ứng viên tốt, nhưng có thể tăng dần sau.*  
-Nếu sai ngược lại thì chuyện gì xảy ra? *Nếu quá ưu tiên recall → shortlist dài, recruiter vẫn phải đọc nhiều; nếu quá ưu tiên precision → bỏ lỡ ứng viên phù hợp, giảm trust và adoption.*
+**Optimize precision hay recall?** ☑ Precision · ☐ Recall
+Tại sao? Trong tuyển dụng, false positive (chọn sai người) tốn cost phỏng vấn và onboarding. False negative (bỏ sót người tốt) ít nguy hiểm hơn vì HR vẫn có thể review manually. Ưu tiên precision để đảm bảo top-N candidates chất lượng cao.
+Nếu sai ngược lại thì chuyện gì xảy ra? Nếu optimize recall → nhiều candidates không phù hợp vào top-N → HR mất thời gian review, giảm trust vào hệ thống → bỏ dùng
 
-
-| Metric                                                  | Threshold    | Red flag (dừng khi)                  |
-| ------------------------------------------------------- | ------------ | ------------------------------------ |
-| *Precision@K (K=10) theo đánh giá recruiter “fit”*      | *≥ 0.7*      | *< 0.5 trong 2 phiên demo liên tiếp* |
-| *Avg time-to-shortlist (so với baseline)*               | *giảm ≥ 50%* | *giảm < 20%*                         |
-| *Explanation helpful rate (% recruiter chọn “helpful”)* | *≥ 70%*      | *< 40%*                              |
-| *Override rate (% chỉnh score vì “reasoning sai”)*      | *≤ 25%*      | *> 40%*                              |
-
+| Metric | Threshold | Red flag (dừng khi) |
+|--------|-----------|---------------------|
+| Matching accuracy (% top-3 có ≥1 người được chọn phỏng vấn) | ≥70% | <50% trong 2 tuần |
+| Question relevance (% câu hỏi được giữ nguyên/chỉnh sửa nhẹ) | ≥60% | <40% trong 1 tuần |
+| Time saved (giảm từ 2-3h xuống <30 phút/vị trí) | ≥75% reduction | <50% reduction |
+| User satisfaction (HR rating 1-5 sau mỗi session) | ≥3.5/5 | <2.5/5 trong 1 tháng |
 
 ---
 
 ## 4. Top 3 failure modes
 
-*Liệt kê cách product có thể fail — không phải list features.*  
+*Liệt kê cách product có thể fail — không phải list features.*
 *"Failure mode nào user KHÔNG BIẾT bị sai? Đó là cái nguy hiểm nhất."*
 
-
-| #   | Trigger                                                                                     | Hậu quả                                                          | Mitigation                                                                                                                         |
-| --- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | *CV PDF parse lỗi (mất dòng, sai layout) → skill/experience bị thiếu mà user không nhận ra* | *Ứng viên phù hợp bị xếp thấp; trust giảm khi phát hiện muộn*    | *Hiển thị “extraction confidence”, highlight evidence spans, cho phép upload text/alternative parse, fallback OCR/another parser.* |
-| 2   | *Keyword overfit: match cao vì từ khóa nhưng thiếu context thực tế*                         | *Shortlist sai, tốn thời gian phỏng vấn*                         | *Weighted scoring + rule checks (must-have), critic agent kiểm tra consistency giữa score và evidence; yêu cầu dẫn chứng từ CV.*   |
-| 3   | *Bias theo trường/địa điểm/keyword nhạy cảm hoặc suy luận seniority sai*                    | *Đánh giá không công bằng, rủi ro đạo đức và sản phẩm bị reject* | *Bias detection prompt, loại bỏ/ẩn thuộc tính nhạy cảm khỏi scoring, audit logs, allow reviewer override + explain constraints.*   |
-
+| # | Trigger | Hậu quả | Mitigation |
+|---|---------|---------|------------|
+| 1 | CV chứa buzzwords nhiều nhưng thiếu experience thực tế (keyword stuffing) | AI cho matching score cao (75-80%) nhưng candidate không đủ năng lực → waste interview time | Thêm experience validation: check years_of_experience vs skill complexity, semantic analysis của project descriptions, không chỉ dựa keyword |
+| 2 | JD và CV dùng terminology khác nhau cho cùng skill (VD: "ML" vs "Machine Learning", "AI" vs "Artificial Intelligence") | AI tính matching score thấp hơn thực tế → bỏ sót candidate tốt | Đã implement: skill normalization + synonym mapping trong utils.py (_SKILL_SYNONYMS), nhưng cần expand dictionary liên tục |
+| 3 | AI hallucinate skills hoặc experience không có trong CV gốc | HR tin vào analysis sai → chọn candidate không phù hợp, phát hiện muộn trong phỏng vấn | Structured output với Pydantic validation, fallback parsing, và UI hiển thị raw CV text để HR cross-check. Future: add confidence score cho từng extracted field |
 
 ---
 
 ## 5. ROI 3 kịch bản
 
+|   | Conservative | Realistic | Optimistic |
+|---|-------------|-----------|------------|
+| **Assumption** | 5 vị trí/tháng, 30 CVs/vị trí, 60% HR hài lòng | 15 vị trí/tháng, 40 CVs/vị trí, 75% HR hài lòng | 30 vị trí/tháng, 50 CVs/vị trí, 85% HR hài lòng |
+| **Cost** | 150 CVs × $0.08 = $12/tháng (API) | 600 CVs × $0.08 = $48/tháng | 1500 CVs × $0.08 = $120/tháng |
+| **Benefit** | Tiết kiệm 1.5h/vị trí × 5 = 7.5h/tháng (~$150 @ $20/h) | Tiết kiệm 2h/vị trí × 15 = 30h/tháng (~$600) | Tiết kiệm 2.5h/vị trí × 30 = 75h/tháng (~$1500) |
+| **Net** | $150 - $12 = $138/tháng | $600 - $48 = $552/tháng | $1500 - $120 = $1380/tháng |
 
-|                | Conservative                                            | Realistic                                          | Optimistic                                                        |
-| -------------- | ------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
-| **Assumption** | *10 JD/ngày, 20 CV/JD, 50% recruiter dùng thường xuyên* | *30 JD/ngày, 40 CV/JD, 70% dùng thường xuyên*      | *100 JD/ngày, 60 CV/JD, 85% dùng thường xuyên*                    |
-| **Cost**       | *API/compute ~$10/ngày (POC, batch nhỏ)*                | *~$50/ngày*                                        | *~$150/ngày*                                                      |
-| **Benefit**    | *Giảm 30–60 phút/JD để shortlist*                       | *Giảm 1–2h/JD, tăng tốc time-to-interview*         | *Giảm 2–3h/JD + tăng chất lượng shortlist, giảm churn tuyển dụng* |
-| **Net**        | *Positive nếu tiết kiệm ≥ 1–2h/ngày tổng*               | *Positive rõ rệt nếu tiết kiệm ≥ 10–20h/ngày tổng* | *Rất lớn nếu scale + giảm chi phí sai người*                      |
-
-
-**Kill criteria:** *Nếu recruiter không tin/không dùng (precision@K < 0.5 hoặc explanation helpful < 40%) trong 2 vòng demo/tuần thử nghiệm, hoặc cost tăng mà time-to-shortlist không giảm đáng kể.*
+**Kill criteria:** 
+- Cost > benefit trong 3 tháng liên tục
+- User satisfaction <2.5/5 trong 2 tháng
+- Matching accuracy <50% (HR không chọn ai trong top-3) trong 1 tháng
+- Có alternative solution tốt hơn (VD: ATS built-in AI với cost thấp hơn)
 
 ---
 
 ## 6. Mini AI spec (1 trang)
 
-Product hỗ trợ recruiter lọc CV và đánh giá mức độ phù hợp với Job Description nhanh và minh bạch hơn. User upload JD và nhiều CV, hệ thống dùng pipeline multi-agent để: (1) phân tích JD (must-have/nice-to-have, seniority, domain), (2) phân tích CV (skills, kinh nghiệm, dự án, tech stack), (3) matching & ranking dựa trên semantic similarity (embeddings) kết hợp rule-based scoring và weighted aggregation, (4) cung cấp explainability (reasoning + evidence + skill gaps), (5) dùng critic agent để kiểm tra inconsistency/bias và refine kết quả, và (6) sinh bộ câu hỏi phỏng vấn dựa trên JD + CV + gaps.
+**Product Overview:**
+Smart CV-JD Matching là hệ thống AI hỗ trợ nhà tuyển dụng (HR/Recruiter) tự động hóa quy trình screening CV và chuẩn bị phỏng vấn. Thay vì đọc thủ công 50+ CVs và mất 2-3 giờ/vị trí, HR chỉ cần upload JD và batch CVs, hệ thống sẽ:
+1. Phân tích CV và JD thành structured data (skills, experience, education)
+2. Tính matching score dựa trên required skills (70%) + preferred skills (20%) + semantic similarity (10%)
+3. Xếp hạng candidates và đề xuất top-N
+4. Phân tích sâu điểm mạnh/yếu của từng candidate so với JD
+5. Generate bộ câu hỏi phỏng vấn tùy chỉnh từ database nội bộ
 
-Hệ thống theo hướng **augmentation**: AI đề xuất shortlist/score/câu hỏi, recruiter quyết định và có quyền override. Quality ưu tiên **precision cho shortlist** (giảm false positives), đo bằng Precision@K, thời gian tạo shortlist, và mức độ hữu ích của explanation. Risk chính gồm lỗi parse PDF dẫn đến thiếu thông tin, keyword overfit gây match sai, và bias. Mitigation: schema-based structured outputs, hiển thị confidence + evidence, critic agent verify reasoning, guardrails và cơ chế sửa/override rõ ràng.
+**Target Users:**
+- Primary: HR/Recruiters tại các công ty công nghệ, trường đại học (VinUni-VinSchool track)
+- Secondary: Hiring managers cần quickly screen technical candidates
 
-Data flywheel đến từ hành vi recruiter: accept/reject shortlist, override score, chỉnh must-have/nice-to-have, feedback explanation và câu hỏi phỏng vấn. Các signal này dùng để tinh chỉnh weights, prompts, và threshold confidence theo domain/role.
+**AI Approach: Augmentation**
+- AI đề xuất top-N candidates với matching score và analysis, nhưng HR có quyền quyết định cuối cùng
+- Câu hỏi phỏng vấn được generate tự động nhưng HR có thể edit/add/remove
+- Cost of reject thấp: HR chỉ cần skip candidate hoặc chỉnh sửa questions
 
-Kiến trúc đề xuất: API layer (FastAPI/Flask) + orchestrator (LangGraph/CrewAI) điều phối các agent (JD Agent, CV Agent, Match Agent, Critic Agent, Interview Generator). Embeddings dùng OpenAI/SentenceTransformers; vector similarity bằng cosine (FAISS/Chroma). Storage dùng PostgreSQL cho metadata/logs và S3/local cho file CV.
+**Quality Strategy: Precision over Recall**
+- Ưu tiên precision để đảm bảo top-N candidates chất lượng cao, tránh waste interview time
+- False negative (bỏ sót người tốt) ít nguy hiểm hơn vì HR vẫn có thể review manually
+- Target: ≥70% matching accuracy (top-3 có ≥1 người được chọn phỏng vấn)
+
+**Technical Architecture:**
+- LLM Service: NVIDIA API (OpenAI-compatible) với structured output (Pydantic validation)
+- 4 AI Agents:
+  - CVAnalyzer: Extract structured data từ CV text
+  - JDAnalyzer: Extract requirements từ JD text
+  - CandidateDeepAnalyzer: So sánh CV vs JD, tìm strengths/weaknesses
+  - InterviewQuestionGenerator: Generate câu hỏi từ database + context
+- Matching Algorithm: Hybrid approach
+  - Keyword matching: Skill normalization + synonym mapping + fuzzy coverage (Jaccard + SequenceMatcher)
+  - Semantic matching: Hash embedding (local, no API cost) cho summary similarity
+  - Weighted blending: Required skills 70%, Preferred skills 20%, Semantic 10%
+
+**Key Risks & Mitigations:**
+1. Keyword stuffing → Add experience validation, semantic analysis
+2. Terminology mismatch → Skill synonym dictionary (expandable)
+3. Hallucination → Structured output + Pydantic validation + UI shows raw CV for cross-check
+4. Bias → Future: Blind mode (hide name, gender indicators), fairness metrics
+
+**Data Flywheel (Future):**
+- HR selections → Log chosen candidates → Fine-tune matching weights
+- Edited questions → Enrich question database → Improve generation quality
+- Domain-specific data (company's CV/JD patterns) → Marginal value over general LLM
+
+**Cost & Latency:**
+- ~$0.05-0.10/CV (NVIDIA API)
+- 3-5s/CV analysis, 10-15s deep analysis + question generation
+- Target: Process 50 CVs in <5 minutes
+
+**Success Metrics:**
+- Time saved: 75% reduction (từ 2-3h xuống <30 phút)
+- Matching accuracy: ≥70%
+- Question relevance: ≥60%
+- User satisfaction: ≥3.5/5
+
+**Deployment:**
+- Streamlit UI cho demo/internal use
+- Future: FastAPI backend + React frontend cho production
